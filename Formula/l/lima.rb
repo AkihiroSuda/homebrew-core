@@ -1,8 +1,8 @@
 class Lima < Formula
   desc "Linux virtual machines"
   homepage "https://lima-vm.io/"
-  url "https://github.com/lima-vm/lima/archive/refs/tags/v1.0.7.tar.gz"
-  sha256 "90f682e96a370c342c3b16deb1858f37ee28ce88e888e1d6b2634ba24228fdbb"
+  url "https://github.com/lima-vm/lima/archive/refs/tags/v1.1.0-rc.1.tar.gz"
+  sha256 "2d59aa36271578c276a01806195ea615be506bf5d0877e9a5082ee87b4a44513"
   license "Apache-2.0"
   head "https://github.com/lima-vm/lima.git", branch: "master"
 
@@ -23,11 +23,14 @@ class Lima < Formula
   end
 
   def install
+    # make (default):              build everything
+    # make native:                 build core + native guest agent
+    # make additional-guestagents: build non-native guest agents
     if build.head?
-      system "make"
+      system "make", "native"
     else
       # VERSION has to be explicitly specified when building from tar.gz, as it does not contain git tags
-      system "make", "VERSION=#{version}"
+      system "make", "native", "VERSION=#{version}"
     end
 
     bin.install Dir["_output/bin/*"]
@@ -35,6 +38,14 @@ class Lima < Formula
 
     # Install shell completions
     generate_completions_from_executable(bin/"limactl", "completion")
+  end
+
+  def caveats
+    # since lima 1.1.0
+    <<~EOS
+      The guest agents for non-native architectures are now provided in a separate formula:
+        brew install lima-additional-guestagents
+    EOS
   end
 
   test do
